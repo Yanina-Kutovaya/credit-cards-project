@@ -1,46 +1,122 @@
-Overview
-========
+# Credit Cards Project
 
-Welcome to Astronomer! This project was generated after you ran 'astro dev init' using the Astronomer CLI. This readme describes the contents of the project, as well as how to run Apache Airflow on your local machine.
+## Overview
 
-Project Contents
-================
+This is your new Kedro project, which was generated using `Kedro 0.18.0`.
 
-Your Astro project contains the following files and folders:
+Take a look at the [Kedro documentation](https://kedro.readthedocs.io) to get started.
 
-- dags: This folder contains the Python files for your Airflow DAGs. By default, this directory includes an example DAG that runs every 30 minutes and simply prints the current date. It also includes an empty 'my_custom_function' that you can fill out to execute Python code.
-- Dockerfile: This file contains a versioned Astro Runtime Docker image that provides a differentiated Airflow experience. If you want to execute other commands or overrides at runtime, specify them here.
-- include: This folder contains any additional files that you want to include as part of your project. It is empty by default.
-- packages.txt: Install OS-level packages needed for your project by adding them to this file. It is empty by default.
-- requirements.txt: Install Python packages needed for your project by adding them to this file. It is empty by default.
-- plugins: Add custom or community plugins for your project to this file. It is empty by default.
-- airflow_settings.yaml: Use this local-only file to specify Airflow Connections, Variables, and Pools instead of entering them in the Airflow UI as you develop DAGs in this project.
+## Rules and guidelines
 
-Deploy Your Project Locally
-===========================
+In order to get the best out of the template:
 
-1. Start Airflow on your local machine by running 'astro dev start'.
+* Don't remove any lines from the `.gitignore` file we provide
+* Make sure your results can be reproduced by following a [data engineering convention](https://kedro.readthedocs.io/en/stable/faq/faq.html#what-is-data-engineering-convention)
+* Don't commit data to your repository
+* Don't commit any credentials or your local configuration to your repository. Keep all your credentials and local configuration in `conf/local/`
 
-This command will spin up 3 Docker containers on your machine, each for a different Airflow component:
+## How to install dependencies
 
-- Postgres: Airflow's Metadata Database
-- Webserver: The Airflow component responsible for rendering the Airflow UI
-- Scheduler: The Airflow component responsible for monitoring and triggering tasks
+Declare any dependencies in `src/requirements.txt` for `pip` installation and `src/environment.yml` for `conda` installation.
 
-2. Verify that all 3 Docker containers were created by running 'docker ps'.
+To install them, run:
 
-Note: Running 'astro dev start' will start your project with the Airflow Webserver exposed at port 8080 and Postgres exposed at port 5432. If you already have either of those ports allocated, you can either stop your existing Docker containers or change the port.
+```
+pip install -r src/requirements.txt
+```
 
-3. Access the Airflow UI for your local Airflow project. To do so, go to http://localhost:8080/ and log in with 'admin' for both your Username and Password.
+## How to run your Kedro pipeline
 
-You should also be able to access your Postgres Database at 'localhost:5432/postgres'.
+You can run your Kedro project with:
 
-Deploy Your Project to Astronomer
-=================================
+```
+kedro run
+```
 
-If you have an Astronomer account, pushing code to a Deployment on Astronomer is simple. For deploying instructions, refer to Astronomer documentation: https://docs.astronomer.io/cloud/deploy-code/
+## How to test your Kedro project
 
-Contact
-=======
+Have a look at the file `src/tests/test_run.py` for instructions on how to write your tests. You can run your tests as follows:
 
-The Astronomer CLI is maintained with love by the Astronomer team. To report a bug or suggest a change, reach out to our support team: https://support.astronomer.io/
+```
+kedro test
+```
+
+To configure the coverage threshold, go to the `.coveragerc` file.
+
+## Project dependencies
+
+To generate or update the dependency requirements for your project:
+
+```
+kedro build-reqs
+```
+
+This will `pip-compile` the contents of `src/requirements.txt` into a new file `src/requirements.lock`. You can see the output of the resolution by opening `src/requirements.lock`.
+
+After this, if you'd like to update your project requirements, please update `src/requirements.txt` and re-run `kedro build-reqs`.
+
+[Further information about project dependencies](https://kedro.readthedocs.io/en/stable/kedro_project_setup/dependencies.html#project-specific-dependencies)
+
+## How to work with Kedro and notebooks
+
+> Note: Using `kedro jupyter` or `kedro ipython` to run your notebook provides these variables in scope: `context`, `catalog`, and `startup_error`.
+>
+> Jupyter, JupyterLab, and IPython are already included in the project requirements by default, so once you have run `pip install -r src/requirements.txt` you will not need to take any extra steps before you use them.
+
+### Jupyter
+To use Jupyter notebooks in your Kedro project, you need to install Jupyter:
+
+```
+pip install jupyter
+```
+
+After installing Jupyter, you can start a local notebook server:
+
+```
+kedro jupyter notebook
+```
+
+### JupyterLab
+To use JupyterLab, you need to install it:
+
+```
+pip install jupyterlab
+```
+
+You can also start JupyterLab:
+
+```
+kedro jupyter lab
+```
+
+### IPython
+And if you want to run an IPython session:
+
+```
+kedro ipython
+```
+
+### How to convert notebook cells to nodes in a Kedro project
+You can move notebook code over into a Kedro project structure using a mixture of [cell tagging](https://jupyter-notebook.readthedocs.io/en/stable/changelog.html#release-5-0-0) and Kedro CLI commands.
+
+By adding the `node` tag to a cell and running the command below, the cell's source code will be copied over to a Python file within `src/<package_name>/nodes/`:
+
+```
+kedro jupyter convert <filepath_to_my_notebook>
+```
+> *Note:* The name of the Python file matches the name of the original notebook.
+
+Alternatively, you may want to transform all your notebooks in one go. Run the following command to convert all notebook files found in the project root directory and under any of its sub-folders:
+
+```
+kedro jupyter convert --all
+```
+
+### How to ignore notebook output cells in `git`
+To automatically strip out all output cell contents before committing to `git`, you can run `kedro activate-nbstripout`. This will add a hook in `.git/config` which will run `nbstripout` before anything is committed to `git`.
+
+> *Note:* Your output cells will be retained locally.
+
+## Package your Kedro project
+
+[Further information about building project documentation and packaging your project](https://kedro.readthedocs.io/en/stable/tutorial/package_a_project.html)
