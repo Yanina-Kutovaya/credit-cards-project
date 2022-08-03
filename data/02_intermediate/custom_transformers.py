@@ -7,6 +7,42 @@ import pyspark.sql.functions as F
 from typing import Iterable
 
 
+IDENTIFIERS = ['TransactionID']
+TARGET_COLUMN = ['isFraud']
+TIME_COLUMNS = ['TransactionDT']
+
+## Binary columnes passed Chi2 test (EDA)
+BINARY_FEATURES = ['V286', 'V26']
+
+## Categorical columns passed Chi2 test (EDA)
+CATEGORICAL_FEATURES = []
+
+## Discrete columnes passed Chi2 test (EDA)
+DISCRETE_FEATURES = ['weekdays', 'minutes']
+
+## Continuous columns with correlation < 0.8 (EDA)
+CONTINUOUS_FEATURES = [
+    'addr1', 'addr2', 'C7', 'V97', 'V183', 'V236', 'V279', 
+    'V280', 'V290', 'V306', 'V308', 'V317'
+    ]
+max_thresholds = {
+    'addr1': 540.0,
+    'addr2': 87.0,
+    'C7': 10.0,
+    'V97': 7.0,
+    'V183': 4.0,
+    'V236': 3.0,
+    'V279': 5.0,
+    'V280': 9.0,
+    'V290': 3.0,
+    'V306': 938.0,
+    'V308': 1649.5,
+    'V317': 1762.0
+    }
+# 0, >0
+binary_1 = ['V26', 'V286']
+
+
 class DiscreteToBinaryTransformer0(Transformer):
     """
     Consolidates discrete variables to groups 0, >0. 
@@ -20,8 +56,7 @@ class DiscreteToBinaryTransformer0(Transformer):
         for var in self.binary_1:
             df = df.withColumn(
                 var, F.when(F.col(var) > 0, 1).otherwise(F.col(var))
-                ) 
-      
+                )
         return df
 
 
@@ -42,8 +77,7 @@ class ContinuousOutliersCapper(Transformer):
                 k, F.when(
                     F.isnull(F.col(k)), F.col(k)
                     ).otherwise(F.least(F.col(k), F.lit(v)))
-          ) 
-      
+          )
         return df
 
 
@@ -71,9 +105,9 @@ class TimeFeaturesGenerator(Transformer):
             )
         df = df.withColumn(
             'minutes', (F.col(time_var) % d % h / m).cast(IntegerType())
-            )      
-      
+            )
         return df
+
 
 class FillNan(Transformer):
     """
@@ -88,8 +122,7 @@ class FillNan(Transformer):
     def _transform(self, df: DataFrame) -> DataFrame:
         df = df.na.fill(value=-999, subset=BINARY_FEATURES)
         df = df.na.fill(value=-999, subset=DISCRETE_FEATURES)
-        df = df.na.fill(value=0, subset=CONTINUOUS_FEATURES)           
-      
+        df = df.na.fill(value=0, subset=CONTINUOUS_FEATURES)
         return df
 
 
@@ -101,12 +134,9 @@ class StringFromDiscrete(Transformer):
     def __init__(self, var_list: Iterable[str]):
         super(StringFromDiscrete, self).__init__()
         self.var_list = var_list
-        
+
 
     def _transform(self, df: DataFrame) -> DataFrame:
         for var in self.var_list:
-            df = df.withColumn(var + '_str', df[var].cast(StringType()))
-      
+            df = df.withColumn(var + '_str', df[var].cast(StringType()))      
         return df
-
-
